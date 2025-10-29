@@ -1,0 +1,5 @@
+{
+  "name": "Sistema de Registro de Miembros",
+  "description": "Una aplicación web para digitalizar y gestionar el registro de miembros, reemplazando el llenado manual de planillas. Incluye un sistema de autenticación para personal autorizado.",
+  "requestFramePermissions": []
+}
