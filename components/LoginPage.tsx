@@ -17,9 +17,22 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
     // Mock authentication
     const isAdmin = username === 'admin' && password === 'password';
     const isDirectiva = username === 'Directiva' && password === 'SomosGobierno';
-    const isDirectiva = username === 'Daniel' && password === 'LedebouncafeaAdri';
+    const isDaniel = username === 'Daniel' && password === 'CoordElectoral2025';
+    const isMagallanes = username === 'Magallanes' && password === 'CoordOrganizacion2025';
 
     if (isAdmin || isDirectiva) {
+      onLogin(username);
+      setError('');
+    } else {
+      setError('Usuario o contraseña incorrectos.');
+    }
+    if (isAdmin || isMagallanes) {
+      onLogin(username);
+      setError('');
+    } else {
+      setError('Usuario o contraseña incorrectos.');
+    }
+    if (isAdmin || isDaniel) {
       onLogin(username);
       setError('');
     } else {

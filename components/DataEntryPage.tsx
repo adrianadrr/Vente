@@ -13,8 +13,7 @@ interface DataEntryPageProps {
 
 const initialFormState: Omit<Registrant, 'id' | 'correl'> = {
   cedula: '',
-  censo2223: false,
-  tipo123: false,
+  censo2223tipo123: '1',
   afiliado: false,
   simpatizante: false,
   codCentroEE: '',
@@ -30,8 +29,7 @@ const sampleData: Registrant[] = [
         id: 1,
         correl: '00001',
         cedula: '3111111',
-        censo2223: true,
-        tipo123: true,
+        censo2223tipo123: '1',
         afiliado: true,
         simpatizante: false,
         codCentroEE: '10101001',
@@ -50,8 +48,7 @@ const DataEntryPage: React.FC<DataEntryPageProps> = ({ username, onLogout }) => 
   const [filters, setFilters] = useState({
     afiliado: false,
     simpatizante: false,
-    censo2223: false,
-    tipo123: false,
+    
   });
   const [deleteConfirmation, setDeleteConfirmation] = useState<{ isOpen: boolean; recordId: number | null }>({
     isOpen: false,
@@ -76,8 +73,7 @@ const DataEntryPage: React.FC<DataEntryPageProps> = ({ username, onLogout }) => 
       // Filter logic
       if (filters.afiliado && !r.afiliado) return false;
       if (filters.simpatizante && !r.simpatizante) return false;
-      if (filters.censo2223 && !r.censo2223) return false;
-      if (filters.tipo123 && !r.tipo123) return false;
+     
       
       return true;
     });
@@ -137,7 +133,7 @@ const DataEntryPage: React.FC<DataEntryPageProps> = ({ username, onLogout }) => 
     }
 
     const headers = [
-      'ID', 'Correl', 'Cédula', 'Censo 22-23', 'Tipo 123', 'Afiliado', 'Simpatizante',
+      'ID', 'Correl', 'Cédula', 'Censo 22-23 Tipo 123', 'Afiliado', 'Simpatizante',
       'Cód. Centro EE', 'Celular', 'Teléfono Fijo', 'Email', 'Usuario Opcional', 'Cédula Admin'
     ];
 
@@ -147,8 +143,7 @@ const DataEntryPage: React.FC<DataEntryPageProps> = ({ username, onLogout }) => 
         r.id,
         r.correl,
         `"${r.cedula}"`,
-        r.censo2223 ? 'Sí' : 'No',
-        r.tipo123 ? 'Sí' : 'No',
+        `"${r.censo2223tipo123}"`,
         r.afiliado ? 'Sí' : 'No',
         r.simpatizante ? 'Sí' : 'No',
         `"${r.codCentroEE}"`,
@@ -206,6 +201,10 @@ const DataEntryPage: React.FC<DataEntryPageProps> = ({ username, onLogout }) => 
                   <input type="text" name="codCentroEE" value={newRecord.codCentroEE} onChange={handleInputChange} className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 outline-none" />
                 </div>
                 <div>
+                  <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-1">censo2223 tipo123</label>
+                  <input type="tel" name="censo2223tipo123" value={newRecord.celular} onChange={handleInputChange} className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 outline-none" />
+                </div>
+                <div>
                   <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-1">Celular</label>
                   <input type="tel" name="celular" value={newRecord.celular} onChange={handleInputChange} className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 outline-none" />
                 </div>
@@ -226,8 +225,6 @@ const DataEntryPage: React.FC<DataEntryPageProps> = ({ username, onLogout }) => 
                   <input type="text" name="cedulaAdmin" value={newRecord.cedulaAdmin} onChange={handleInputChange} className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 outline-none" required />
                 </div>
                 <div className="flex items-center space-x-8 md:col-span-2 lg:col-span-3 pt-4">
-                  <div className="flex items-center"><input type="checkbox" name="censo2223" checked={newRecord.censo2223} onChange={handleInputChange} className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" /><label className="ml-2 text-sm text-gray-600 dark:text-gray-300">Censo 22-23</label></div>
-                  <div className="flex items-center"><input type="checkbox" name="tipo123" checked={newRecord.tipo123} onChange={handleInputChange} className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" /><label className="ml-2 text-sm text-gray-600 dark:text-gray-300">Tipo 123</label></div>
                   <div className="flex items-center"><input type="checkbox" name="afiliado" checked={newRecord.afiliado} onChange={handleInputChange} className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" /><label className="ml-2 text-sm text-gray-600 dark:text-gray-300">Afiliado</label></div>
                   <div className="flex items-center"><input type="checkbox" name="simpatizante" checked={newRecord.simpatizante} onChange={handleInputChange} className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" /><label className="ml-2 text-sm text-gray-600 dark:text-gray-300">Simpatizante</label></div>
                 </div>
@@ -265,14 +262,6 @@ const DataEntryPage: React.FC<DataEntryPageProps> = ({ username, onLogout }) => 
                               <div className="flex items-center">
                                   <input type="checkbox" id="filterSimpatizante" name="simpatizante" checked={filters.simpatizante} onChange={handleFilterChange} className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" />
                                   <label htmlFor="filterSimpatizante" className="ml-2 text-sm font-medium text-gray-600 dark:text-gray-300">Simpatizante</label>
-                              </div>
-                              <div className="flex items-center">
-                                  <input type="checkbox" id="filterCenso" name="censo2223" checked={filters.censo2223} onChange={handleFilterChange} className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" />
-                                  <label htmlFor="filterCenso" className="ml-2 text-sm font-medium text-gray-600 dark:text-gray-300">Censo 22-23</label>
-                              </div>
-                              <div className="flex items-center">
-                                  <input type="checkbox" id="filterTipo" name="tipo123" checked={filters.tipo123} onChange={handleFilterChange} className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" />
-                                  <label htmlFor="filterTipo" className="ml-2 text-sm font-medium text-gray-600 dark:text-gray-300">Tipo 123</label>
                               </div>
                           </div>
                           <button

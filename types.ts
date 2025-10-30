@@ -3,8 +3,7 @@ export interface Registrant {
   id: number;
   correl: string;
   cedula: string;
-  censo2223: boolean;
-  tipo123: boolean;
+  censo2223tipo123: string;
   afiliado: boolean;
   simpatizante: boolean;
   codCentroEE: string;
