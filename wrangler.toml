@@ -1,0 +1,8 @@
+{
+  "name": "worker-name",
+  "compatibility_date": "2025-10-30",
+  "main": "src/index.js", // Asegúrate de que esto apunta a tu archivo Worker
+  "assets": {
+    "directory": "./dist" // <--- **AQUÍ DEBE ESTAR TU DIRECTORIO DE SALIDA**
+  }
+}
