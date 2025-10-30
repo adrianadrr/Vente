@@ -4,6 +4,7 @@ import { PlusIcon } from './icons/PlusIcon';
 import { TrashIcon } from './icons/TrashIcon';
 import { SearchIcon } from './icons/SearchIcon';
 import { DownloadIcon } from './icons/DownloadIcon';
+import { EditIcon } from './icons/EditIcon';
 import ConfirmationModal from './ConfirmationModal';
 
 interface DataEntryPageProps {
@@ -13,8 +14,10 @@ interface DataEntryPageProps {
 
 const initialFormState: Omit<Registrant, 'id' | 'correl'> = {
   cedula: '',
-  censo2223: false,
-  tipo123: false,
+  nombreApellido: '',
+  ciudadResidencia: '',
+  pais: '',
+  censoTipo: false,
   afiliado: false,
   simpatizante: false,
   codCentroEE: '',
@@ -30,8 +33,10 @@ const sampleData: Registrant[] = [
         id: 1,
         correl: '00001',
         cedula: '3111111',
-        censo2223: true,
-        tipo123: true,
+        nombreApellido: 'Juan Pérez',
+        ciudadResidencia: 'Caracas',
+        pais: 'Venezuela',
+        censoTipo: true,
         afiliado: true,
         simpatizante: false,
         codCentroEE: '10101001',
@@ -47,11 +52,11 @@ const DataEntryPage: React.FC<DataEntryPageProps> = ({ username, onLogout }) => 
   const [registrants, setRegistrants] = useState<Registrant[]>(sampleData);
   const [newRecord, setNewRecord] = useState(initialFormState);
   const [searchTerm, setSearchTerm] = useState('');
+  const [editingRecordId, setEditingRecordId] = useState<number | null>(null);
   const [filters, setFilters] = useState({
     afiliado: false,
     simpatizante: false,
-    censo2223: false,
-    tipo123: false,
+    censoTipo: false,
   });
   const [deleteConfirmation, setDeleteConfirmation] = useState<{ isOpen: boolean; recordId: number | null }>({
     isOpen: false,
@@ -76,8 +81,7 @@ const DataEntryPage: React.FC<DataEntryPageProps> = ({ username, onLogout }) => 
       // Filter logic
       if (filters.afiliado && !r.afiliado) return false;
       if (filters.simpatizante && !r.simpatizante) return false;
-      if (filters.censo2223 && !r.censo2223) return false;
-      if (filters.tipo123 && !r.tipo123) return false;
+      if (filters.censoTipo && !r.censoTipo) return false;
       
       return true;
     });
@@ -100,19 +104,43 @@ const DataEntryPage: React.FC<DataEntryPageProps> = ({ username, onLogout }) => 
     }));
   };
 
-  const handleAddRecord = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newRecord.cedula || !newRecord.cedulaAdmin) {
         alert("Por favor, complete los campos obligatorios: Cédula y Cédula Administrador.");
         return;
     }
     
-    const recordToAdd: Registrant = {
-      id: nextId,
-      correl: String(nextId).padStart(5, '0'),
-      ...newRecord,
-    };
-    setRegistrants(prev => [...prev, recordToAdd]);
+    if (editingRecordId !== null) {
+      setRegistrants(prev => 
+        prev.map(r => 
+          r.id === editingRecordId ? { ...r, ...newRecord, id: r.id, correl: r.correl } : r
+        )
+      );
+      setEditingRecordId(null);
+    } else {
+      const recordToAdd: Registrant = {
+        id: nextId,
+        correl: String(nextId).padStart(5, '0'),
+        ...newRecord,
+      };
+      setRegistrants(prev => [...prev, recordToAdd]);
+    }
+    setNewRecord(initialFormState);
+  };
+  
+  const handleEdit = (id: number) => {
+    const recordToEdit = registrants.find(r => r.id === id);
+    if (recordToEdit) {
+      const { id: recordId, correl, ...formData } = recordToEdit;
+      setNewRecord(formData);
+      setEditingRecordId(recordToEdit.id);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingRecordId(null);
     setNewRecord(initialFormState);
   };
   
@@ -137,7 +165,7 @@ const DataEntryPage: React.FC<DataEntryPageProps> = ({ username, onLogout }) => 
     }
 
     const headers = [
-      'ID', 'Correl', 'Cédula', 'Censo 22-23', 'Tipo 123', 'Afiliado', 'Simpatizante',
+      'ID', 'Correl', 'Cédula', 'Nombre y Apellido', 'Ciudad de Residencia', 'País', 'Censo/Tipo', 'Afiliado', 'Simpatizante',
       'Cód. Centro EE', 'Celular', 'Teléfono Fijo', 'Email', 'Usuario Opcional', 'Cédula Admin'
     ];
 
@@ -147,8 +175,10 @@ const DataEntryPage: React.FC<DataEntryPageProps> = ({ username, onLogout }) => 
         r.id,
         r.correl,
         `"${r.cedula}"`,
-        r.censo2223 ? 'Sí' : 'No',
-        r.tipo123 ? 'Sí' : 'No',
+        `"${r.nombreApellido}"`,
+        `"${r.ciudadResidencia}"`,
+        `"${r.pais}"`,
+        r.censoTipo ? 'Sí' : 'No',
         r.afiliado ? 'Sí' : 'No',
         r.simpatizante ? 'Sí' : 'No',
         `"${r.codCentroEE}"`,
@@ -193,13 +223,27 @@ const DataEntryPage: React.FC<DataEntryPageProps> = ({ username, onLogout }) => 
 
         <main>
           <div className="mb-8 bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md">
-            <h2 className="text-2xl font-semibold mb-6 text-gray-700 dark:text-gray-200">Añadir Nuevo Inscrito</h2>
-            <form onSubmit={handleAddRecord}>
+            <h2 className="text-2xl font-semibold mb-6 text-gray-700 dark:text-gray-200">
+              {editingRecordId ? `Editando Inscrito ID: ${editingRecordId}` : 'Añadir Nuevo Inscrito'}
+            </h2>
+            <form onSubmit={handleSubmit}>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {/* Form fields */}
                 <div>
                   <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-1">Cédula (sin puntos)</label>
                   <input type="text" name="cedula" value={newRecord.cedula} onChange={handleInputChange} className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 outline-none" required />
+                </div>
+                 <div>
+                  <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-1">Nombre y Apellido</label>
+                  <input type="text" name="nombreApellido" value={newRecord.nombreApellido} onChange={handleInputChange} className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 outline-none" />
+                </div>
+                 <div>
+                  <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-1">Ciudad de Residencia</label>
+                  <input type="text" name="ciudadResidencia" value={newRecord.ciudadResidencia} onChange={handleInputChange} className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 outline-none" />
+                </div>
+                 <div>
+                  <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-1">País</label>
+                  <input type="text" name="pais" value={newRecord.pais} onChange={handleInputChange} className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 outline-none" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-1">Cód. Centro EE</label>
@@ -226,16 +270,34 @@ const DataEntryPage: React.FC<DataEntryPageProps> = ({ username, onLogout }) => 
                   <input type="text" name="cedulaAdmin" value={newRecord.cedulaAdmin} onChange={handleInputChange} className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 outline-none" required />
                 </div>
                 <div className="flex items-center space-x-8 md:col-span-2 lg:col-span-3 pt-4">
-                  <div className="flex items-center"><input type="checkbox" name="censo2223" checked={newRecord.censo2223} onChange={handleInputChange} className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" /><label className="ml-2 text-sm text-gray-600 dark:text-gray-300">Censo 22-23</label></div>
-                  <div className="flex items-center"><input type="checkbox" name="tipo123" checked={newRecord.tipo123} onChange={handleInputChange} className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" /><label className="ml-2 text-sm text-gray-600 dark:text-gray-300">Tipo 123</label></div>
+                  <div className="flex items-center"><input type="checkbox" name="censoTipo" checked={newRecord.censoTipo} onChange={handleInputChange} className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" /><label className="ml-2 text-sm text-gray-600 dark:text-gray-300">Censo/Tipo</label></div>
                   <div className="flex items-center"><input type="checkbox" name="afiliado" checked={newRecord.afiliado} onChange={handleInputChange} className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" /><label className="ml-2 text-sm text-gray-600 dark:text-gray-300">Afiliado</label></div>
                   <div className="flex items-center"><input type="checkbox" name="simpatizante" checked={newRecord.simpatizante} onChange={handleInputChange} className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" /><label className="ml-2 text-sm text-gray-600 dark:text-gray-300">Simpatizante</label></div>
                 </div>
               </div>
-              <div className="mt-6 flex justify-end">
-                  <button type="submit" className="flex items-center justify-center px-6 py-3 font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-blue-500 transition-colors duration-300">
-                      <PlusIcon />
-                      <span className="ml-2">Añadir Registro</span>
+              <div className="mt-6 flex justify-end gap-4">
+                  {editingRecordId && (
+                    <button type="button" onClick={handleCancelEdit} className="flex items-center justify-center px-6 py-3 font-semibold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-gray-400 transition-colors duration-300">
+                      Cancelar
+                    </button>
+                  )}
+                  <button type="submit" className={`flex items-center justify-center px-6 py-3 font-semibold text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 transition-colors duration-300 ${
+                      editingRecordId
+                        ? 'bg-yellow-500 hover:bg-yellow-600 focus:ring-yellow-400'
+                        : 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500'
+                    }`}>
+                      {editingRecordId ? (
+                          <>
+                            <EditIcon />
+                            <span className="ml-2">Actualizar Registro</span>
+                          </>
+                        ) : (
+                          <>
+                            <PlusIcon />
+                            <span className="ml-2">Añadir Registro</span>
+                          </>
+                        )
+                      }
                   </button>
               </div>
             </form>
@@ -267,12 +329,8 @@ const DataEntryPage: React.FC<DataEntryPageProps> = ({ username, onLogout }) => 
                                   <label htmlFor="filterSimpatizante" className="ml-2 text-sm font-medium text-gray-600 dark:text-gray-300">Simpatizante</label>
                               </div>
                               <div className="flex items-center">
-                                  <input type="checkbox" id="filterCenso" name="censo2223" checked={filters.censo2223} onChange={handleFilterChange} className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" />
-                                  <label htmlFor="filterCenso" className="ml-2 text-sm font-medium text-gray-600 dark:text-gray-300">Censo 22-23</label>
-                              </div>
-                              <div className="flex items-center">
-                                  <input type="checkbox" id="filterTipo" name="tipo123" checked={filters.tipo123} onChange={handleFilterChange} className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" />
-                                  <label htmlFor="filterTipo" className="ml-2 text-sm font-medium text-gray-600 dark:text-gray-300">Tipo 123</label>
+                                  <input type="checkbox" id="filterCensoTipo" name="censoTipo" checked={filters.censoTipo} onChange={handleFilterChange} className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" />
+                                  <label htmlFor="filterCensoTipo" className="ml-2 text-sm font-medium text-gray-600 dark:text-gray-300">Censo/Tipo</label>
                               </div>
                           </div>
                           <button
@@ -299,10 +357,10 @@ const DataEntryPage: React.FC<DataEntryPageProps> = ({ username, onLogout }) => 
                           <th scope="col" className="px-4 py-3">ID</th>
                           <th scope="col" className="px-4 py-3">Correl</th>
                           <th scope="col" className="px-4 py-3">Cédula</th>
+                          <th scope="col" className="px-4 py-3">Nombre y Apellido</th>
                           <th scope="col" className="px-4 py-3 text-center">Afiliado</th>
                           <th scope="col" className="px-4 py-3 text-center">Simpat.</th>
                           <th scope="col" className="px-4 py-3">Celular</th>
-                          <th scope="col" className="px-4 py-3">Email</th>
                           <th scope="col" className="px-4 py-3">Cédula Admin</th>
                           <th scope="col" className="px-4 py-3 text-center">Acciones</th>
                       </tr>
@@ -313,15 +371,20 @@ const DataEntryPage: React.FC<DataEntryPageProps> = ({ username, onLogout }) => 
                           <td className="px-4 py-4 font-medium text-gray-900 dark:text-white">{r.id}</td>
                           <td className="px-4 py-4">{r.correl}</td>
                           <td className="px-4 py-4">{r.cedula}</td>
+                          <td className="px-4 py-4">{r.nombreApellido}</td>
                           <td className="px-4 py-4 text-center">{r.afiliado ? '✔️' : '❌'}</td>
                           <td className="px-4 py-4 text-center">{r.simpatizante ? '✔️' : '❌'}</td>
                           <td className="px-4 py-4">{r.celular}</td>
-                          <td className="px-4 py-4">{r.email}</td>
                           <td className="px-4 py-4">{r.cedulaAdmin}</td>
-                          <td className="px-4 py-4 text-center">
-                              <button onClick={() => handleDeleteRequest(r.id)} className="p-2 text-red-500 hover:bg-red-100 dark:hover:bg-red-900/50 rounded-full transition-colors">
+                          <td className="px-4 py-4">
+                            <div className="flex items-center justify-center gap-2">
+                              <button onClick={() => handleEdit(r.id)} className="p-2 text-yellow-500 hover:bg-yellow-100 dark:hover:bg-yellow-900/50 rounded-full transition-colors" aria-label={`Editar registro ${r.id}`}>
+                                  <EditIcon />
+                              </button>
+                              <button onClick={() => handleDeleteRequest(r.id)} className="p-2 text-red-500 hover:bg-red-100 dark:hover:bg-red-900/50 rounded-full transition-colors" aria-label={`Eliminar registro ${r.id}`}>
                                   <TrashIcon />
                               </button>
+                            </div>
                           </td>
                           </tr>
                       ))}

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { UserIcon } from './icons/UserIcon';
 import { LockIcon } from './icons/LockIcon';
@@ -17,11 +16,10 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
     // Mock authentication
     const isAdmin = username === 'admin' && password === 'password';
     const isDirectiva = username === 'Directiva' && password === 'SomosGobierno';
-    // Fix: Renamed the variable to avoid redeclaration error.
     const isDaniel = username === 'Daniel' && password === 'LedebouncafeaAdri';
+    const isSupervisor = username === 'Supervisor' && password === 'SuperClave123';
 
-    // Fix: Added the new user credential to the login check.
-    if (isAdmin || isDirectiva || isDaniel) {
+    if (isAdmin || isDirectiva || isDaniel || isSupervisor) {
       onLogin(username);
       setError('');
     } else {
